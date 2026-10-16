@@ -1,0 +1,184 @@
+{
+  "schema_version": 1,
+  "id": "java-design",
+  "revision": "v1.0.0",
+  "title": "캡슐화·인터페이스·조합",
+  "description": "변경할 부분을 객체의 역할로 나눠요.",
+  "sources": [
+    "https://slog.gg/p/14146"
+  ],
+  "sections": [
+    {
+      "id": "reading-1",
+      "title": "외부에서 바꾸면 안 되는 상태",
+      "body": "객체는 값과 그 값을 바꾸는 규칙을 묶어요.\n잔액을 public으로 열면 음수를 넣을 수 있죠.\nprivate 필드와 검증하는 메서드로 막아요.\n생성자에서도 같은 규칙을 지켜야 해요.\n입력이 잘못되면 조용히 보정하지 마세요.\nIllegalArgumentException으로 알려주세요.\n"
+    },
+    {
+      "id": "reading-2",
+      "title": "역할을 받아서 사용하기",
+      "body": "알림을 보내는 역할을 인터페이스로 정해요.\n사용하는 객체는 실제 전송 방법을 몰라도 돼요.\n생성자로 필요한 역할을 받으면 바꾸기 쉬워요.\n이것이 이 실습에서 사용하는 의존성 주입이에요.\n상속은 부모의 모든 구현을 물려받아요.\n단지 기능이 필요하면 조합을 먼저 검토해요.\n조심하세요. static도 객체를 전달받을 수 있어요.\nstatic의 제한은 암묵적인 this가 없다는 점이에요.\n참조의 실제 크기와 GC 시점은 JVM에 달려요.\n참조가 사라졌다고 즉시 수거되지는 않아요.\n"
+    }
+  ],
+  "tasks": [
+    {
+      "id": "wallet",
+      "title": "잔액의 규칙을 보호하기",
+      "goal": "`Wallet(int)`과 `balance()`, `deposit(int)`을 구현하세요.\n초기 잔액은 0 이상이에요. 입금액은 양수예요.\n잘못된 값에는 IllegalArgumentException을 던지세요.\n서로 다른 지갑의 잔액은 독립이에요.",
+      "language": "junit",
+      "entry_file": "Exercise.java",
+      "starter_code": "class Wallet {\n    // 상태와 메서드를 작성하세요.\n}\n",
+      "solution": "class Wallet {\n    // 객체마다 독립된 잔액을 보관해요.\n    private int balance;\n    Wallet(int balance) {\n        if (balance < 0) throw new IllegalArgumentException(\"잔액\");\n        this.balance = balance;\n    }\n    int balance() { return balance; }\n    void deposit(int amount) {\n        // 잘못된 입력이 상태를 바꾸기 전에 거부해요.\n        if (amount <= 0) throw new IllegalArgumentException(\"입금액\");\n        balance = Math.addExact(balance, amount);\n    }\n}\n",
+      "files": {
+        "ExerciseTest.java": "import org.junit.jupiter.api.Test;\nimport static org.assertj.core.api.Assertions.*;\nclass ExerciseTest {\n@Test void balancesAreIndependent() {\n    var a = new Wallet(10); var b = new Wallet(20);\n    a.deposit(5);\n    assertThat(a.balance()).isEqualTo(15); assertThat(b.balance()).isEqualTo(20);\n    assertThatThrownBy(() -> a.deposit(0)).isInstanceOf(IllegalArgumentException.class);\n    assertThatThrownBy(() -> new Wallet(-1)).isInstanceOf(IllegalArgumentException.class);\n}\n\n}\n",
+        "build.gradle": "plugins { id 'java' }\nrepositories { mavenCentral() }\njava { toolchain { languageVersion = JavaLanguageVersion.of(25) } }\ndependencies {\n    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'\n    testImplementation 'org.assertj:assertj-core:3.27.7'\n    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.4'\n}\nsourceSets { test { java { srcDirs = ['.']; include '*.java' } } }\ntest { useJUnitPlatform() }\n",
+        "settings.gradle": "rootProject.name = 'mq3-exercise'\n"
+      },
+      "tests": [],
+      "web_checks": [],
+      "mutations": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "target": "problem",
+          "text": "`Wallet(int)`과 `balance()`, `deposit(int)`을 구현하세요.\n초기 잔액은 0 이상이에요. 입금액은 양수예요.\n잘못된 값에는 IllegalArgumentException을 던지세요.\n서로 다른 지갑의 잔액은 독립이에요."
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+        },
+        {
+          "action": "set_code",
+          "code": "class Wallet {\n    // 객체마다 독립된 잔액을 보관해요.\n    private int balance;\n    Wallet(int balance) {\n        if (balance < 0) throw new IllegalArgumentException(\"잔액\");\n        this.balance = balance;\n    }\n    int balance() {/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n    void deposit(int amount) {/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n}\n",
+          "say": "선언과 생성자를 먼저 준비했어요. 메서드는 하나씩 채울게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": true
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "아직 구현하지 않은 메서드가 있어요. 지금 실패하는 위치를 확인하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": " return balance; /*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": ""
+        },
+        {
+          "action": "run",
+          "expected_failure": true
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": "\n        // 잘못된 입력이 상태를 바꾸기 전에 거부해요.\n        if (amount <= 0) throw new IllegalArgumentException(\"입금액\");\n/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": "        balance = Math.addExact(balance, amount);\n    /*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-1*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": ""
+        },
+        {
+          "action": "run",
+          "expected_failure": false
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+        }
+      ],
+      "source_hash": "bdee5a967aba0aa726470e43bb8cd5404998aac1bc1059f720223037b7a1d445"
+    },
+    {
+      "id": "notification",
+      "title": "교체 가능한 알림 역할",
+      "goal": "`Notifier`에 `void send(String)`을 선언하세요.\n`Registration(Notifier)`은 전달받은 알림을 보관해요.\n`welcome(String)`은 `환영해요, 이름`을 보내요.",
+      "language": "junit",
+      "entry_file": "Exercise.java",
+      "starter_code": "interface Notifier {\n}\nclass Registration {\n}\n",
+      "solution": "interface Notifier { void send(String message); }\nclass Registration {\n    // 구체적인 전송 방법 대신 역할에 의존해요.\n    private final Notifier notifier;\n    Registration(Notifier notifier) { this.notifier = notifier; }\n    void welcome(String name) {\n        // 전송은 주입받은 객체에 맡겨요.\n        notifier.send(\"환영해요, \" + name);\n    }\n}\n",
+      "files": {
+        "ExerciseTest.java": "import org.junit.jupiter.api.Test;\nimport static org.assertj.core.api.Assertions.*;\nclass ExerciseTest {\n@Test void injectedRoleReceivesMessage() {\n    var messages = new java.util.ArrayList<String>();\n    var service = new Registration(messages::add);\n    service.welcome(\"민수\"); service.welcome(\"영희\");\n    assertThat(messages).containsExactly(\"환영해요, 민수\", \"환영해요, 영희\");\n}\n\n}\n",
+        "build.gradle": "plugins { id 'java' }\nrepositories { mavenCentral() }\njava { toolchain { languageVersion = JavaLanguageVersion.of(25) } }\ndependencies {\n    testImplementation 'org.junit.jupiter:junit-jupiter:5.13.4'\n    testImplementation 'org.assertj:assertj-core:3.27.7'\n    testRuntimeOnly 'org.junit.platform:junit-platform-launcher:1.13.4'\n}\nsourceSets { test { java { srcDirs = ['.']; include '*.java' } } }\ntest { useJUnitPlatform() }\n",
+        "settings.gradle": "rootProject.name = 'mq3-exercise'\n"
+      },
+      "tests": [],
+      "web_checks": [],
+      "mutations": [],
+      "required": true,
+      "narration": [
+        {
+          "action": "say",
+          "target": "problem",
+          "text": "`Notifier`에 `void send(String)`을 선언하세요.\n`Registration(Notifier)`은 전달받은 알림을 보관해요.\n`welcome(String)`은 `환영해요, 이름`을 보내요."
+        },
+        {
+          "action": "say",
+          "target": "editor",
+          "text": "조심하세요. 실행 성공과 모든 검사 통과는 달라요. 단계마다 결과를 확인해요."
+        },
+        {
+          "action": "set_code",
+          "code": "interface Notifier { void send(String message); }\nclass Registration {\n    // 구체적인 전송 방법 대신 역할에 의존해요.\n    private final Notifier notifier;\n    Registration(Notifier notifier) { this.notifier = notifier; }\n    void welcome(String name) {/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");}\n}\n",
+          "say": "선언과 생성자를 먼저 준비했어요. 메서드는 하나씩 채울게요."
+        },
+        {
+          "action": "run",
+          "expected_failure": true
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "아직 구현하지 않은 메서드가 있어요. 지금 실패하는 위치를 확인하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": "\n        // 전송은 주입받은 객체에 맡겨요.\n        notifier.send(\"환영해요, \" + name);\n/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "say": "작은 조각을 채워요. 앞뒤의 변수와 조건을 함께 확인하세요."
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": "    /*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");"
+        },
+        {
+          "action": "patch_code",
+          "before": "/*mq3-step-0*/throw new UnsupportedOperationException(\"아직 구현 전이에요\");",
+          "after": ""
+        },
+        {
+          "action": "run",
+          "expected_failure": false
+        },
+        {
+          "action": "say",
+          "target": "output",
+          "text": "실행 결과를 읽어보세요. 아직 남은 검사와 통과한 검사를 비교해요."
+        }
+      ],
+      "source_hash": "f1757581e8dc71cef1495fece6976b3e6393aa906801e999e4878a15260618e0"
+    }
+  ]
+}
